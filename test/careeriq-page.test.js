@@ -41,3 +41,11 @@ test("CareerIQ asks Gemini for job listings and includes swipe deck containers",
   assert.match(page, /function saveJob/);
   assert.match(page, /function ignoreJob/);
 });
+
+test("CareerIQ uses Gemini JSON mode config and a fallback report path", () => {
+  assert.match(page, /generationConfig/);
+  assert.match(page, /responseMimeType:\s*'application\/json'/);
+  assert.match(page, /maxOutputTokens:\s*4096/);
+  assert.match(page, /function buildFallbackReport/);
+  assert.match(page, /return buildFallbackReport\(resume, role, market, level\)/);
+});

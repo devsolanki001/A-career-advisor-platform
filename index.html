@@ -1051,10 +1051,10 @@ Rules:
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generation_config: {
-          response_mime_type: 'application/json',
+        generationConfig: {
+          responseMimeType: 'application/json',
           temperature: 0.4,
-          max_output_tokens: 2048
+          maxOutputTokens: 4096
         }
       })
     }
@@ -1074,7 +1074,7 @@ Rules:
   try {
     return extractJsonObject(cleaned);
   } catch(e) {
-    throw new Error('Gemini returned a report in an unexpected format. Click Analyze again.');
+    return buildFallbackReport(resume, role, market, level);
   }
 }
 
@@ -1097,6 +1097,57 @@ function extractJsonObject(rawText) {
     }
     return JSON.parse(rawText.slice(start, end + 1));
   }
+}
+
+function buildFallbackReport(resume, role, market, level) {
+  const words = resume.toLowerCase();
+  const hasCloud = /aws|azure|gcp|cloud|docker|kubernetes/.test(words);
+  const hasMetrics = /%|reduced|increased|improved|users|revenue|latency|growth/.test(words);
+  const hasTesting = /test|jest|pytest|unit|automation|qa/.test(words);
+  const gapOne = hasCloud ? 'Product strategy evidence' : 'Cloud deployment proof';
+  const gapTwo = hasMetrics ? 'Stakeholder storytelling' : 'Measurable impact metrics';
+  const gapThree = hasTesting ? 'Executive communication' : 'Testing and quality signals';
+
+  return {
+    hiring_probability: hasMetrics ? 68 : 58,
+    ats_score: hasCloud ? 74 : 66,
+    match_summary: `CareerIQ could not safely parse the full Gemini JSON, so this backup report keeps the demo moving. Based on the resume text, ${role} in the ${market} market looks plausible with focused improvements in ${gapOne}, ${gapTwo}, and ${gapThree}.`,
+    skill_gaps: [
+      { skill: gapOne, importance: 88, your_level: 'Basic', required_level: 'Advanced', how_to_learn: 'Build one proof project or case study in 2 weeks.' },
+      { skill: gapTwo, importance: 82, your_level: hasMetrics ? 'Intermediate' : 'Basic', required_level: 'Advanced', how_to_learn: 'Rewrite top resume bullets with quantified outcomes.' },
+      { skill: gapThree, importance: 74, your_level: 'Basic', required_level: 'Intermediate', how_to_learn: 'Prepare 3 STAR stories and one technical walkthrough.' }
+    ],
+    strengths: ['Hands-on project evidence', 'Relevant technical foundation', 'Clear target role intent', level],
+    salary: {
+      min: market === 'India' ? 8 : 70000,
+      median: market === 'India' ? 14 : 95000,
+      max: market === 'India' ? 24 : 125000,
+      currency_label: market === 'India' ? 'INR (LPA)' : 'USD',
+      location_note: 'Fallback benchmark for demo continuity; verify against live market data.'
+    },
+    market: {
+      demand: 'HIGH',
+      openings_estimate: '1,000+',
+      yoy_growth: '+8%',
+      competition_level: 'MEDIUM'
+    },
+    alternative_roles: [
+      { title: `${role} Associate`, match_pct: 82, salary_range: market === 'India' ? '8-16 LPA' : '$70k-$100k', why: 'Closer fit while building senior-level evidence.' },
+      { title: 'Technical Program Analyst', match_pct: 76, salary_range: market === 'India' ? '7-14 LPA' : '$65k-$95k', why: 'Uses technical background plus coordination skills.' },
+      { title: 'Product Operations Specialist', match_pct: 72, salary_range: market === 'India' ? '6-12 LPA' : '$60k-$90k', why: 'Good bridge toward product ownership.' }
+    ],
+    interview_questions: [
+      { question: `Why are you targeting ${role} now?`, why_asked: 'Tests career clarity.', tip: 'Connect past evidence to the target role.' },
+      { question: 'Tell me about a project where you influenced outcomes without authority.', why_asked: 'Tests ownership and collaboration.', tip: 'Use a concise STAR story with a metric.' },
+      { question: 'Which skill gap are you actively closing?', why_asked: 'Tests self-awareness.', tip: 'Name the gap and show the learning plan.' }
+    ],
+    resume_tips: [
+      'Add 2-3 quantified impact bullets near the top.',
+      `Mirror keywords from ${role} descriptions in the skills and project sections.`,
+      'Add one portfolio or case-study link that proves readiness.'
+    ],
+    job_listings: fallbackJobs(role, market)
+  };
 }
 
 function renderResults(d, role, market) {
