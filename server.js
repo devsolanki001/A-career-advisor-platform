@@ -8,7 +8,7 @@ import { buildCareerPrompt, extractJsonObject, validateCareerReport } from "./sr
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const publicDir = join(__dirname, "public");
 const port = Number(process.env.PORT || 3000);
-const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+const model = process.env.GEMINI_MODEL || "gemini-flash-lite-latest";
 
 const contentTypes = {
   ".html": "text/html; charset=utf-8",
