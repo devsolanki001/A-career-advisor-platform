@@ -45,7 +45,7 @@ test("CareerIQ asks Gemini for job listings and includes swipe deck containers",
 test("CareerIQ uses Gemini JSON mode config and a fallback report path", () => {
   assert.match(page, /generationConfig/);
   assert.match(page, /responseMimeType:\s*'application\/json'/);
-  assert.match(page, /maxOutputTokens:\s*4096/);
+  assert.match(page, /maxOutputTokens:\s*6144/);
   assert.match(page, /function buildFallbackReport/);
   assert.match(page, /return buildFallbackReport\(resume, role, market, level\)/);
 });
@@ -57,4 +57,15 @@ test("CareerIQ includes personalized learning resources", () => {
   assert.match(page, /function fallbackLearningPath/);
   assert.match(page, /https:\/\/www\.cloudskillsboost\.google/);
   assert.match(page, /https:\/\/www\.freecodecamp\.org/);
+});
+
+test("CareerIQ generates an ATS friendly optimized CV with PDF and Word downloads", () => {
+  assert.match(page, /"optimized_cv"/);
+  assert.match(page, /id="optimized-cv-preview"/);
+  assert.match(page, /id="cv-download-document"/);
+  assert.match(page, /function renderOptimizedCv/);
+  assert.match(page, /function downloadOptimizedCvPdf/);
+  assert.match(page, /function downloadOptimizedCvWord/);
+  assert.match(page, /ATS-friendly, one-column resume/);
+  assert.match(page, /html2pdf\.bundle\.min\.js/);
 });

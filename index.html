@@ -6,6 +6,7 @@
   <title>CareerIQ — AI Career Intelligence Platform</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -643,6 +644,123 @@
     }
     .tip-text { font-size: 13px; line-height: 1.6; color: var(--text); }
 
+    /* Optimized CV */
+    .cv-header-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .cv-note {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: -6px;
+      max-width: 620px;
+    }
+    .cv-toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .cv-download-btn {
+      border: 1px solid rgba(6,182,212,0.35);
+      border-radius: 10px;
+      padding: 9px 12px;
+      color: var(--cyan);
+      background: rgba(6,182,212,0.08);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .cv-download-btn:hover { border-color: var(--cyan); background: rgba(6,182,212,0.14); }
+    .cv-preview-shell {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      padding: 18px;
+      overflow-x: auto;
+    }
+    .cv-document {
+      max-width: 794px;
+      min-height: 980px;
+      margin: 0 auto;
+      padding: 42px 48px;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 4px;
+      box-shadow: 0 18px 54px rgba(0,0,0,0.3);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.45;
+    }
+    .cv-doc-name {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .cv-doc-contact {
+      text-align: center;
+      color: #4b5563;
+      font-size: 11px;
+      margin-bottom: 14px;
+    }
+    .cv-doc-headline {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 18px;
+    }
+    .cv-doc-section { margin-top: 16px; }
+    .cv-doc-section-title {
+      color: #111827;
+      border-bottom: 1px solid #111827;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+      padding-bottom: 3px;
+    }
+    .cv-doc-text {
+      font-size: 12px;
+      color: #1f2937;
+    }
+    .cv-doc-role {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      margin-top: 9px;
+    }
+    .cv-doc-company {
+      color: #374151;
+      font-weight: 600;
+    }
+    .cv-doc-date {
+      color: #4b5563;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .cv-doc-list {
+      margin: 5px 0 0 18px;
+      padding: 0;
+      font-size: 12px;
+    }
+    .cv-doc-list li { margin-bottom: 4px; }
+    .cv-doc-skills {
+      font-size: 12px;
+      color: #1f2937;
+    }
+    @media (max-width: 640px) {
+      .cv-document { padding: 28px 24px; min-width: 620px; }
+    }
+
     /* Summary banner */
     .summary-banner {
       background: var(--primary-dim);
@@ -762,7 +880,7 @@
       <div class="loading-step" id="step-2">⏳ Loading salary benchmarks from labor market data...</div>
       <div class="loading-step" id="step-3">⏳ Running Gemini analysis on your resume...</div>
       <div class="loading-step" id="step-4">⏳ Computing hiring probability and skill gaps...</div>
-      <div class="loading-step" id="step-5">⏳ Generating personalized interview prep...</div>
+      <div class="loading-step" id="step-5">⏳ Generating interview prep and optimized CV...</div>
     </div>
   </div>
 
@@ -880,6 +998,23 @@
       <div id="resume-tips-list"></div>
     </div>
 
+    <!-- Optimized CV Export -->
+    <div class="section card">
+      <div class="cv-header-row">
+        <div>
+          <div class="card-title">Optimized ATS CV</div>
+          <div class="cv-note">Gemini rewrites a clean, ATS-friendly, one-column resume from the user's profile and target role. Review before submitting.</div>
+        </div>
+        <div class="cv-toolbar">
+          <button class="cv-download-btn" onclick="downloadOptimizedCvPdf()">Download PDF</button>
+          <button class="cv-download-btn" onclick="downloadOptimizedCvWord()">Download Word</button>
+        </div>
+      </div>
+      <div id="optimized-cv-preview" class="cv-preview-shell">
+        <div id="cv-download-document" class="cv-document"></div>
+      </div>
+    </div>
+
   </div><!-- /results -->
 
 </div><!-- /container -->
@@ -969,7 +1104,7 @@ async function analyze() {
   setStep(5, 'done');
 
   await sleep(400);
-  renderResults(result, role, market);
+  renderResults(result, role, market, resume, level);
   showSection('results');
 }
 
@@ -1070,6 +1205,31 @@ Return ONLY a valid JSON object with this exact structure — no markdown, no ex
     "<tip 2>",
     "<tip 3>"
   ],
+  "optimized_cv": {
+    "candidate_name": "<name inferred from resume, or Candidate Name>",
+    "contact_line": "<email | phone | LinkedIn | GitHub if present>",
+    "headline": "<target-role aligned headline>",
+    "summary": "<3-line ATS-friendly professional summary>",
+    "core_skills": ["<skill keyword>", "<skill keyword>", "<skill keyword>"],
+    "experience": [
+      {
+        "role": "<job title>",
+        "company": "<company>",
+        "period": "<dates>",
+        "bullets": ["<achievement bullet with metric>", "<achievement bullet with target-role keyword>"]
+      }
+    ],
+    "projects": [
+      {
+        "name": "<project name>",
+        "bullets": ["<project bullet with measurable result or relevant tool>"]
+      }
+    ],
+    "education": ["<degree or education item>"],
+    "certifications": ["<certification or course>"],
+    "ats_keywords": ["<target role keyword>", "<target role keyword>"],
+    "format_notes": ["<short ATS formatting note>"]
+  },
   "learning_path": [
     {
       "skill": "<skill gap to close>",
@@ -1105,6 +1265,7 @@ Rules:
 - resume_tips: list exactly 3 concrete improvements
 - learning_path: list exactly 3 course/resource recommendations tied to the top skill gaps.
 - job_listings: list exactly 6 realistic job opportunities. These are simulated recommendations, not scraped live postings.
+- optimized_cv: produce a concise ATS-friendly, one-column resume. No tables, photos, columns, icons, charts, or fancy formatting. Rewrite bullets to be measurable and aligned with ${role}.
 - salary: use the ${market} market. For India use LPA, for US use USD k, etc.
 - Be honest. If someone is far from the role, say so in match_summary and give a realistic hiring_probability.`;
 
@@ -1118,7 +1279,7 @@ Rules:
         generationConfig: {
           responseMimeType: 'application/json',
           temperature: 0.4,
-          maxOutputTokens: 4096
+          maxOutputTokens: 6144
         }
       })
     }
@@ -1210,12 +1371,13 @@ function buildFallbackReport(resume, role, market, level) {
       `Mirror keywords from ${role} descriptions in the skills and project sections.`,
       'Add one portfolio or case-study link that proves readiness.'
     ],
+    optimized_cv: fallbackOptimizedCv(resume, role, market, level, { gapOne, gapTwo, gapThree }),
     learning_path: fallbackLearningPath(gapOne, gapTwo, gapThree),
     job_listings: fallbackJobs(role, market)
   };
 }
 
-function renderResults(d, role, market) {
+function renderResults(d, role, market, resume = '', level = '') {
   document.getElementById('results-role-title').textContent = `Analysis: ${role}`;
   document.getElementById('results-subtitle').textContent = `${market} market · ${new Date().toLocaleDateString()}`;
   document.getElementById('match-summary').textContent = d.match_summary || '';
@@ -1332,6 +1494,8 @@ function renderResults(d, role, market) {
     </div>
   `).join('');
 
+  renderOptimizedCv(d.optimized_cv || fallbackOptimizedCv(resume, role, market, level, d));
+
   // Animate skill bars after DOM renders
   setTimeout(() => {
     document.querySelectorAll('.skill-bar-fill').forEach(bar => {
@@ -1344,6 +1508,237 @@ function renderResults(d, role, market) {
 let jobDeck = [];
 let currentJobIndex = 0;
 let savedJobs = [];
+let latestOptimizedCv = null;
+
+function renderOptimizedCv(cv) {
+  latestOptimizedCv = normalizeOptimizedCv(cv);
+  const target = document.getElementById('cv-download-document');
+  if (!target) return;
+  target.innerHTML = buildOptimizedCvHtml(latestOptimizedCv);
+}
+
+function normalizeOptimizedCv(cv = {}) {
+  return {
+    candidate_name: cv.candidate_name || 'Candidate Name',
+    contact_line: cv.contact_line || 'Email | Phone | LinkedIn | Portfolio',
+    headline: cv.headline || 'Target-role aligned professional',
+    summary: cv.summary || 'Career-ready candidate with relevant project experience, measurable outcomes, and a focused plan to close priority skill gaps.',
+    core_skills: ensureArray(cv.core_skills, ['Target role keywords', 'Project delivery', 'Stakeholder communication', 'Data-driven execution']),
+    experience: ensureArray(cv.experience, []),
+    projects: ensureArray(cv.projects, []),
+    education: ensureArray(cv.education, []),
+    certifications: ensureArray(cv.certifications, []),
+    ats_keywords: ensureArray(cv.ats_keywords, []),
+    format_notes: ensureArray(cv.format_notes, ['Use a one-column layout.', 'Avoid tables, images, icons, and text boxes.', 'Mirror keywords from the target job description.'])
+  };
+}
+
+function buildOptimizedCvHtml(cv) {
+  const experienceHtml = cv.experience.length
+    ? cv.experience.map(item => `
+      <div class="cv-doc-role">
+        <span>${escapeHtml(item.role || 'Relevant Role')} <span class="cv-doc-company">- ${escapeHtml(item.company || 'Company')}</span></span>
+        <span class="cv-doc-date">${escapeHtml(item.period || '')}</span>
+      </div>
+      ${renderCvBullets(item.bullets)}
+    `).join('')
+    : `<div class="cv-doc-text">Add 1-3 recent roles with measurable, target-role aligned achievement bullets.</div>`;
+
+  const projectsHtml = cv.projects.length
+    ? cv.projects.map(project => `
+      <div class="cv-doc-role"><span>${escapeHtml(project.name || 'Relevant Project')}</span></div>
+      ${renderCvBullets(project.bullets)}
+    `).join('')
+    : '';
+
+  return `
+    <div class="cv-doc-name">${escapeHtml(cv.candidate_name)}</div>
+    <div class="cv-doc-contact">${escapeHtml(cv.contact_line)}</div>
+    <div class="cv-doc-headline">${escapeHtml(cv.headline)}</div>
+
+    <div class="cv-doc-section">
+      <div class="cv-doc-section-title">Professional Summary</div>
+      <div class="cv-doc-text">${escapeHtml(cv.summary)}</div>
+    </div>
+
+    <div class="cv-doc-section">
+      <div class="cv-doc-section-title">Core Skills</div>
+      <div class="cv-doc-skills">${cv.core_skills.map(escapeHtml).join(' | ')}</div>
+    </div>
+
+    <div class="cv-doc-section">
+      <div class="cv-doc-section-title">Professional Experience</div>
+      ${experienceHtml}
+    </div>
+
+    ${projectsHtml ? `
+      <div class="cv-doc-section">
+        <div class="cv-doc-section-title">Projects</div>
+        ${projectsHtml}
+      </div>
+    ` : ''}
+
+    ${cv.education.length ? `
+      <div class="cv-doc-section">
+        <div class="cv-doc-section-title">Education</div>
+        <div class="cv-doc-text">${cv.education.map(escapeHtml).join('<br>')}</div>
+      </div>
+    ` : ''}
+
+    ${cv.certifications.length ? `
+      <div class="cv-doc-section">
+        <div class="cv-doc-section-title">Certifications</div>
+        <div class="cv-doc-text">${cv.certifications.map(escapeHtml).join('<br>')}</div>
+      </div>
+    ` : ''}
+
+    ${cv.ats_keywords.length ? `
+      <div class="cv-doc-section">
+        <div class="cv-doc-section-title">ATS Keywords</div>
+        <div class="cv-doc-skills">${cv.ats_keywords.map(escapeHtml).join(' | ')}</div>
+      </div>
+    ` : ''}
+  `;
+}
+
+function renderCvBullets(bullets) {
+  const items = ensureArray(bullets, ['Rewrite this bullet with action, scope, metric, and target-role keyword.']);
+  return `<ul class="cv-doc-list">${items.slice(0, 5).map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+}
+
+function fallbackOptimizedCv(resume = '', role = 'Target Role', market = '', level = '', context = {}) {
+  const name = inferCandidateName(resume);
+  const contact = inferContactLine(resume);
+  const gaps = [context.gapOne, context.gapTwo, context.gapThree]
+    .concat((context.skill_gaps || []).map(g => g.skill))
+    .filter(Boolean)
+    .slice(0, 3);
+  const targetKeywords = [role, market, level].filter(Boolean);
+
+  return {
+    candidate_name: name,
+    contact_line: contact,
+    headline: `${role} candidate | ${level || 'Career-ready'} | ATS-optimized profile`,
+    summary: `${name} is targeting ${role} roles in the ${market || 'selected'} market with relevant experience, project evidence, and a clear improvement plan. This version is structured for ATS parsing with direct keywords, measurable bullets, and simple one-column formatting.`,
+    core_skills: targetKeywords.concat(['Measurable impact', 'Cross-functional collaboration', 'Problem solving']).slice(0, 8),
+    experience: [
+      {
+        role: role || 'Target Role',
+        company: 'Relevant Experience',
+        period: 'Recent experience',
+        bullets: [
+          `Applied ${role || 'target-role'} skills across projects, operations, or delivery work with focus on measurable outcomes.`,
+          'Improved resume positioning by converting responsibilities into achievement bullets with scope, tools, and business impact.',
+          `Closed priority gaps in ${gaps.join(', ') || 'target-role keywords'} through focused learning and portfolio evidence.`
+        ]
+      }
+    ],
+    projects: [
+      {
+        name: `${role || 'Target Role'} Readiness Project`,
+        bullets: [
+          'Built a portfolio-ready proof point aligned with target job descriptions and ATS keywords.',
+          'Documented problem, approach, tools, result, and next improvement step for interview storytelling.'
+        ]
+      }
+    ],
+    education: ['Education details from uploaded profile'],
+    certifications: ['Relevant certifications or courses from uploaded profile'],
+    ats_keywords: targetKeywords.concat(gaps).filter(Boolean),
+    format_notes: ['Use a one-column layout.', 'Avoid tables, graphics, icons, text boxes, and headers/footers.', 'Keep bullets under two lines and start each with a strong action verb.']
+  };
+}
+
+function inferCandidateName(resume) {
+  const line = String(resume || '').split(/\r?\n/).map(x => x.trim()).find(Boolean);
+  if (!line || line.length > 60 || /@|http|linkedin|github/i.test(line)) return 'Candidate Name';
+  return line;
+}
+
+function inferContactLine(resume) {
+  const text = String(resume || '');
+  const email = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0];
+  const phone = text.match(/(?:\+?\d[\d\s().-]{7,}\d)/)?.[0];
+  const linkedin = text.match(/linkedin\.com\/[^\s|]+/i)?.[0];
+  const github = text.match(/github\.com\/[^\s|]+/i)?.[0];
+  return [email, phone, linkedin, github].filter(Boolean).join(' | ') || 'Email | Phone | LinkedIn | Portfolio';
+}
+
+function downloadOptimizedCvPdf() {
+  const source = document.getElementById('cv-download-document');
+  if (!source) return;
+
+  if (!window.html2pdf) {
+    const popup = window.open('', '_blank');
+    if (!popup) return;
+    popup.document.write(buildPrintableCvDocument(source.innerHTML));
+    popup.document.close();
+    popup.focus();
+    popup.print();
+    return;
+  }
+
+  window.html2pdf().set({
+    margin: 0.35,
+    filename: getCvFilename('pdf'),
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  }).from(source).save();
+}
+
+function downloadOptimizedCvWord() {
+  const source = document.getElementById('cv-download-document');
+  if (!source) return;
+
+  const html = buildPrintableCvDocument(source.innerHTML);
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = getCvFilename('doc');
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(objectUrl);
+}
+
+function buildPrintableCvDocument(innerHtml) {
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Optimized ATS CV</title>
+  <style>
+    body { background:#fff; margin:0; padding:24px; }
+    .cv-document { max-width:794px; margin:0 auto; color:#111827; font-family:Arial, Helvetica, sans-serif; line-height:1.45; }
+    .cv-doc-name { font-size:28px; font-weight:800; text-align:center; margin-bottom:4px; }
+    .cv-doc-contact { text-align:center; color:#4b5563; font-size:11px; margin-bottom:14px; }
+    .cv-doc-headline { text-align:center; font-size:13px; font-weight:700; color:#1f2937; margin-bottom:18px; }
+    .cv-doc-section { margin-top:16px; }
+    .cv-doc-section-title { color:#111827; border-bottom:1px solid #111827; font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:7px; padding-bottom:3px; }
+    .cv-doc-text, .cv-doc-skills, .cv-doc-list { font-size:12px; color:#1f2937; }
+    .cv-doc-role { display:flex; justify-content:space-between; gap:12px; font-size:12px; font-weight:800; margin-top:9px; }
+    .cv-doc-company { color:#374151; font-weight:600; }
+    .cv-doc-date { color:#4b5563; font-weight:600; white-space:nowrap; }
+    .cv-doc-list { margin:5px 0 0 18px; padding:0; }
+    .cv-doc-list li { margin-bottom:4px; }
+  </style>
+</head>
+<body><div class="cv-document">${innerHtml}</div></body>
+</html>`;
+}
+
+function getCvFilename(ext) {
+  const name = latestOptimizedCv?.candidate_name || 'optimized-cv';
+  const safeName = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'optimized-cv';
+  return `${safeName}-ats-cv.${ext}`;
+}
+
+function ensureArray(value, fallback = []) {
+  return Array.isArray(value) && value.length ? value : fallback;
+}
 
 function renderLearningPath(resources) {
   const list = document.getElementById('learning-path-list');
