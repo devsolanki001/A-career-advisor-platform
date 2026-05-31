@@ -33,3 +33,11 @@ test("CareerIQ parses JSON even when Gemini wraps it with extra text", () => {
   assert.equal(parsed.hiring_probability, 72);
   assert.equal(parsed.ats_score, 81);
 });
+
+test("CareerIQ asks Gemini for job listings and includes swipe deck containers", () => {
+  assert.match(page, /"job_listings"/);
+  assert.match(page, /id="job-swipe-deck"/);
+  assert.match(page, /id="saved-jobs-list"/);
+  assert.match(page, /function saveJob/);
+  assert.match(page, /function ignoreJob/);
+});

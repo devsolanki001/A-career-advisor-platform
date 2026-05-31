@@ -413,6 +413,126 @@
     }
     .salary-note { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
+    /* Job match deck */
+    .job-deck-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 780px) { .job-deck-layout { grid-template-columns: 1fr; } }
+    .job-card {
+      position: relative;
+      min-height: 300px;
+      border: 1px solid rgba(124,58,237,0.28);
+      border-radius: var(--radius);
+      padding: 22px;
+      background:
+        linear-gradient(145deg, rgba(124,58,237,0.16), rgba(6,182,212,0.08)),
+        rgba(255,255,255,0.04);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+      overflow: hidden;
+    }
+    .job-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      pointer-events: none;
+      background: radial-gradient(circle at top right, rgba(6,182,212,0.18), transparent 45%);
+    }
+    .job-topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      position: relative;
+    }
+    .job-title { font-size: 22px; line-height: 1.15; font-weight: 800; margin-bottom: 6px; }
+    .job-company { color: var(--muted); font-size: 13px; }
+    .job-match {
+      min-width: 64px;
+      text-align: center;
+      padding: 8px 10px;
+      border-radius: 14px;
+      color: var(--green);
+      background: rgba(16,185,129,0.12);
+      border: 1px solid rgba(16,185,129,0.28);
+      font-weight: 800;
+    }
+    .job-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 18px 0;
+      position: relative;
+    }
+    .job-meta-pill {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 10px;
+      color: var(--muted);
+      font-size: 12px;
+      background: rgba(255,255,255,0.04);
+    }
+    .job-reason {
+      position: relative;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+    .job-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 18px;
+      position: relative;
+    }
+    .job-action-btn {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 12px;
+      color: var(--text);
+      background: rgba(255,255,255,0.05);
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s, border-color 0.18s;
+    }
+    .job-action-btn:hover { transform: translateY(-1px); }
+    .job-action-btn.ignore:hover { border-color: rgba(239,68,68,0.55); color: #fca5a5; }
+    .job-action-btn.save:hover { border-color: rgba(16,185,129,0.55); color: var(--green); }
+    .deck-status { color: var(--muted); font-size: 12px; margin-top: 12px; text-align: center; }
+    .saved-job {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: rgba(255,255,255,0.035);
+    }
+    .saved-job-title { font-size: 14px; font-weight: 700; }
+    .saved-job-meta { color: var(--muted); font-size: 12px; margin: 3px 0 8px; }
+    .prep-btn {
+      border: 1px solid rgba(6,182,212,0.35);
+      border-radius: 9px;
+      padding: 7px 10px;
+      color: var(--cyan);
+      background: rgba(6,182,212,0.08);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .apply-prep {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
     /* Alt roles */
     .alt-role-item {
       display: flex;
@@ -680,6 +800,21 @@
       <div id="salary-section"></div>
     </div>
 
+    <!-- Job Swipe Deck -->
+    <div class="section card">
+      <div class="card-title">Smart Job Swipe + Apply Prep</div>
+      <div class="job-deck-layout">
+        <div>
+          <div id="job-swipe-deck"></div>
+          <div class="deck-status" id="job-deck-status"></div>
+        </div>
+        <div>
+          <div class="card-title">Saved Opportunities</div>
+          <div id="saved-jobs-list"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Interview Questions -->
     <div class="section card">
       <div class="card-title">Personalized Interview Prep</div>
@@ -881,6 +1016,22 @@ Return ONLY a valid JSON object with this exact structure — no markdown, no ex
     "<specific, actionable tip referencing their actual resume content>",
     "<tip 2>",
     "<tip 3>"
+  ],
+  "job_listings": [
+    {
+      "title": "<realistic job title>",
+      "company_type": "<e.g. SaaS startup, fintech, consulting firm>",
+      "location": "<city/remote based on selected market>",
+      "salary_range": "<estimated range>",
+      "match_pct": <integer 60-95>,
+      "why_fit": "<why this job is worth applying to>",
+      "missing_keywords": ["<keyword 1>", "<keyword 2>"],
+      "apply_prep": {
+        "resume_headline": "<tailored one-line resume headline>",
+        "resume_bullets": ["<bullet 1>", "<bullet 2>", "<bullet 3>"],
+        "cover_note": "<short 2 sentence cover note>"
+      }
+    }
   ]
 }
 
@@ -889,6 +1040,7 @@ Rules:
 - alternative_roles: list exactly 3 roles they are already partially qualified for
 - interview_questions: list exactly 3 questions tailored to THIS person's resume gaps
 - resume_tips: list exactly 3 concrete improvements
+- job_listings: list exactly 6 realistic job opportunities. These are simulated recommendations, not scraped live postings.
 - salary: use the ${market} market. For India use LPA, for US use USD k, etc.
 - Be honest. If someone is far from the role, say so in match_summary and give a realistic hiring_probability.`;
 
@@ -1041,6 +1193,8 @@ function renderResults(d, role, market) {
     if (fill) fill.style.width = '80%';
   }, 200);
 
+  renderJobDeck(d.job_listings || [], role, market);
+
   // Interview questions
   document.getElementById('interview-list').innerHTML = (d.interview_questions || []).map(q => `
     <div class="question-item">
@@ -1069,6 +1223,134 @@ function renderResults(d, role, market) {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+let jobDeck = [];
+let currentJobIndex = 0;
+let savedJobs = [];
+
+function renderJobDeck(listings, role, market) {
+  jobDeck = listings.length ? listings : fallbackJobs(role, market);
+  currentJobIndex = 0;
+  savedJobs = [];
+  renderCurrentJob();
+  renderSavedJobs();
+}
+
+function renderCurrentJob() {
+  const deck = document.getElementById('job-swipe-deck');
+  const status = document.getElementById('job-deck-status');
+  const job = jobDeck[currentJobIndex];
+
+  if (!job) {
+    deck.innerHTML = `
+      <div class="job-card">
+        <div class="job-title">Deck complete</div>
+        <div class="job-company">Saved ${savedJobs.length} job${savedJobs.length === 1 ? '' : 's'} for apply prep.</div>
+        <div class="job-reason" style="margin-top:18px">Use the shortlist on the right to tailor your resume, keywords, and cover note before applying.</div>
+      </div>
+    `;
+    status.textContent = 'All suggested jobs reviewed';
+    return;
+  }
+
+  deck.innerHTML = `
+    <div class="job-card">
+      <div class="job-topline">
+        <div>
+          <div class="job-title">${escapeHtml(job.title || 'Recommended role')}</div>
+          <div class="job-company">${escapeHtml(job.company_type || 'Target company')} · ${escapeHtml(job.location || 'Target market')}</div>
+        </div>
+        <div class="job-match">${job.match_pct || 75}%</div>
+      </div>
+      <div class="job-meta-row">
+        <span class="job-meta-pill">${escapeHtml(job.salary_range || 'Salary estimate unavailable')}</span>
+        ${(job.missing_keywords || []).slice(0, 3).map(k => `<span class="job-meta-pill">Gap: ${escapeHtml(k)}</span>`).join('')}
+      </div>
+      <div class="job-reason">${escapeHtml(job.why_fit || 'This job fits your current profile and target market.')}</div>
+      <div class="job-actions">
+        <button class="job-action-btn ignore" onclick="ignoreJob()">← Ignore</button>
+        <button class="job-action-btn save" onclick="saveJob()">Save →</button>
+      </div>
+    </div>
+  `;
+  status.textContent = `Job ${currentJobIndex + 1} of ${jobDeck.length} · save right, ignore left`;
+}
+
+function saveJob() {
+  const job = jobDeck[currentJobIndex];
+  if (job) savedJobs.push(job);
+  currentJobIndex += 1;
+  renderCurrentJob();
+  renderSavedJobs();
+}
+
+function ignoreJob() {
+  currentJobIndex += 1;
+  renderCurrentJob();
+}
+
+function renderSavedJobs() {
+  const list = document.getElementById('saved-jobs-list');
+  if (!savedJobs.length) {
+    list.innerHTML = `<div class="deck-status" style="text-align:left">Save jobs to generate quick apply prep.</div>`;
+    return;
+  }
+
+  list.innerHTML = savedJobs.map((job, index) => `
+    <div class="saved-job">
+      <div class="saved-job-title">${escapeHtml(job.title || 'Saved job')}</div>
+      <div class="saved-job-meta">${escapeHtml(job.company_type || 'Company')} · ${escapeHtml(job.location || 'Market')} · ${job.match_pct || 75}% match</div>
+      <button class="prep-btn" onclick="toggleApplyPrep(${index})">Apply prep</button>
+      <div class="apply-prep" id="apply-prep-${index}" style="display:none"></div>
+    </div>
+  `).join('');
+}
+
+function toggleApplyPrep(index) {
+  const box = document.getElementById(`apply-prep-${index}`);
+  const prep = savedJobs[index]?.apply_prep || {};
+  if (!box) return;
+  if (box.style.display === 'block') {
+    box.style.display = 'none';
+    return;
+  }
+
+  box.innerHTML = `
+    <strong>Resume headline:</strong><br>${escapeHtml(prep.resume_headline || 'Tailor your headline to this role and company type.')}<br><br>
+    <strong>Bullet tweaks:</strong>
+    <ul>${(prep.resume_bullets || ['Add a measurable project outcome.', 'Mirror the top missing keywords.', 'Mention tools from the job card.']).map(b => `<li>${escapeHtml(b)}</li>`).join('')}</ul>
+    <strong>Cover note:</strong><br>${escapeHtml(prep.cover_note || 'I am interested in this role because my project experience matches the team needs, and I can close the listed gaps quickly.')}
+  `;
+  box.style.display = 'block';
+}
+
+function fallbackJobs(role, market) {
+  return [
+    {
+      title: role || 'Target Role',
+      company_type: 'Growth-stage tech company',
+      location: market || 'Selected market',
+      salary_range: 'Market-aligned estimate',
+      match_pct: 78,
+      why_fit: 'Generated as a fallback recommendation from your selected target role and market.',
+      missing_keywords: ['Role keywords', 'Metrics'],
+      apply_prep: {
+        resume_headline: `Candidate targeting ${role || 'this role'} with relevant project evidence.`,
+        resume_bullets: ['Add one measurable achievement.', 'Include target-role tools.', 'Show evidence for the biggest skill gap.'],
+        cover_note: 'I am excited about this opportunity because my profile aligns with the role direction and I am actively closing the remaining gaps.'
+      }
+    }
+  ];
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function animateRing(id, pct) {
   const circumference = 251.2;
   const el = document.getElementById(id);
