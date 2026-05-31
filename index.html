@@ -918,15 +918,35 @@ Rules:
   if (!text) throw new Error('Empty response from Gemini');
 
   // Strip markdown code blocks if present
-  const cleaned = text.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+  const cleaned = text;
   try {
-    return JSON.parse(cleaned);
+    return extractJsonObject(cleaned);
   } catch(e) {
-    throw new Error('Could not parse Gemini response. Try again.');
+    throw new Error('Gemini returned a report in an unexpected format. Click Analyze again.');
   }
 }
 
 // ─── Render Results ───────────────────────────────────────────────────────────
+function extractJsonObject(rawText) {
+  if (!rawText || typeof rawText !== 'string') {
+    throw new Error('Empty Gemini response');
+  }
+
+  const fenced = rawText.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const candidate = fenced ? fenced[1].trim() : rawText.trim();
+
+  try {
+    return JSON.parse(candidate);
+  } catch(e) {
+    const start = rawText.indexOf('{');
+    const end = rawText.lastIndexOf('}');
+    if (start === -1 || end === -1 || end <= start) {
+      throw e;
+    }
+    return JSON.parse(rawText.slice(start, end + 1));
+  }
+}
+
 function renderResults(d, role, market) {
   document.getElementById('results-role-title').textContent = `Analysis: ${role}`;
   document.getElementById('results-subtitle').textContent = `${market} market · ${new Date().toLocaleDateString()}`;
