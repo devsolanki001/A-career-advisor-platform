@@ -101,6 +101,8 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 24px;
+      box-shadow: 0 12px 38px rgba(0,0,0,0.14);
+      backdrop-filter: blur(14px);
     }
     .card-title {
       font-size: 13px;
@@ -109,6 +111,45 @@
       letter-spacing: 0.05em;
       color: var(--muted);
       margin-bottom: 14px;
+    }
+    .section-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .section-heading-main {
+      display: grid;
+      gap: 2px;
+    }
+    .section-kicker {
+      color: var(--cyan);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .section-title {
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .section-copy {
+      color: var(--muted);
+      font-size: 12px;
+      max-width: 620px;
+    }
+    .section-pill {
+      border: 1px solid rgba(16,185,129,0.28);
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: var(--green);
+      background: rgba(16,185,129,0.08);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
     }
 
     label {
@@ -555,12 +596,38 @@
     .saved-job {
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 10px;
-      background: rgba(255,255,255,0.035);
+      padding: 14px;
+      margin-bottom: 12px;
+      background:
+        linear-gradient(140deg, rgba(255,255,255,0.055), rgba(6,182,212,0.045)),
+        rgba(255,255,255,0.035);
+      box-shadow: 0 10px 26px rgba(0,0,0,0.13);
     }
-    .saved-job-title { font-size: 14px; font-weight: 700; }
+    .saved-job-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .saved-job-title { font-size: 15px; font-weight: 800; line-height: 1.25; }
     .saved-job-meta { color: var(--muted); font-size: 12px; margin: 3px 0 8px; }
+    .saved-job-score {
+      border: 1px solid rgba(16,185,129,0.28);
+      border-radius: 999px;
+      padding: 4px 8px;
+      color: var(--green);
+      background: rgba(16,185,129,0.09);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .job-action-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
     .prep-btn {
       border: 1px solid rgba(6,182,212,0.35);
       border-radius: 9px;
@@ -572,6 +639,12 @@
       font-weight: 700;
       cursor: pointer;
     }
+    .prep-btn.primary-action {
+      color: #ffffff;
+      border-color: rgba(124,58,237,0.55);
+      background: linear-gradient(135deg, rgba(124,58,237,0.9), rgba(6,182,212,0.72));
+      box-shadow: 0 8px 24px rgba(6,182,212,0.13);
+    }
     .apply-prep {
       margin-top: 12px;
       padding-top: 12px;
@@ -582,8 +655,37 @@
     }
     .application-draft {
       margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
+      padding: 14px;
+      border: 1px solid rgba(124,58,237,0.22);
+      border-radius: 12px;
+      background: rgba(124,58,237,0.065);
+    }
+    .draft-stepper {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .draft-step {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      background: rgba(255,255,255,0.035);
+    }
+    .draft-step strong {
+      display: block;
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.2;
+    }
+    .draft-step span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      margin-top: 2px;
+    }
+    @media (max-width: 640px) {
+      .draft-stepper { grid-template-columns: 1fr; }
     }
     .draft-note {
       color: var(--amber);
@@ -738,6 +840,12 @@
       cursor: pointer;
     }
     .cv-download-btn:hover { border-color: var(--cyan); background: rgba(6,182,212,0.14); }
+    .cv-export-card {
+      background:
+        linear-gradient(135deg, rgba(16,185,129,0.08), rgba(6,182,212,0.05)),
+        var(--card);
+      border-color: rgba(16,185,129,0.18);
+    }
     .cv-preview-shell {
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -1023,7 +1131,13 @@
 
     <!-- Learning Path -->
     <div class="section card">
-      <div class="card-title">Personalized Learning Path</div>
+      <div class="section-heading">
+        <div class="section-heading-main">
+          <div class="section-kicker">Next skills</div>
+          <div class="section-title">Personalized Learning Path</div>
+          <div class="section-copy">Three high-impact resources mapped to the candidate's biggest gaps.</div>
+        </div>
+      </div>
       <div id="learning-path-list" class="learning-grid"></div>
     </div>
 
@@ -1035,7 +1149,14 @@
 
     <!-- Job Swipe Deck -->
     <div class="section card">
-      <div class="card-title">Smart Job Swipe + Apply Prep</div>
+      <div class="section-heading">
+        <div class="section-heading-main">
+          <div class="section-kicker">Opportunity engine</div>
+          <div class="section-title">Smart Job Swipe + Application Copilot</div>
+          <div class="section-copy">Save promising roles, generate a draft application, verify details, then apply faster.</div>
+        </div>
+        <div class="section-pill">Human verified</div>
+      </div>
       <div class="job-deck-layout">
         <div>
           <div id="job-swipe-deck"></div>
@@ -1061,10 +1182,11 @@
     </div>
 
     <!-- Optimized CV Export -->
-    <div class="section card">
+    <div class="section card cv-export-card">
       <div class="cv-header-row">
         <div>
-          <div class="card-title">Optimized ATS CV</div>
+          <div class="section-kicker">Resume export</div>
+          <div class="section-title">Optimized ATS CV</div>
           <div class="cv-note">Gemini rewrites a clean, ATS-friendly, one-column resume from the user's profile and target role. Review before submitting.</div>
         </div>
         <div class="cv-toolbar">
@@ -1919,10 +2041,17 @@ function renderSavedJobs() {
 
   list.innerHTML = savedJobs.map((job, index) => `
     <div class="saved-job">
-      <div class="saved-job-title">${escapeHtml(job.title || 'Saved job')}</div>
-      <div class="saved-job-meta">${escapeHtml(job.company_type || 'Company')} · ${escapeHtml(job.location || 'Market')} · ${job.match_pct || 75}% match</div>
-      <button class="prep-btn" onclick="toggleApplyPrep(${index})">Apply prep</button>
-      <button class="prep-btn" onclick="toggleApplicationDraft(${index})">Create Application Draft</button>
+      <div class="saved-job-top">
+        <div>
+          <div class="saved-job-title">${escapeHtml(job.title || 'Saved job')}</div>
+          <div class="saved-job-meta">${escapeHtml(job.company_type || 'Company')} · ${escapeHtml(job.location || 'Market')}</div>
+        </div>
+        <div class="saved-job-score">${job.match_pct || 75}%</div>
+      </div>
+      <div class="job-action-strip">
+        <button class="prep-btn" onclick="toggleApplyPrep(${index})">Apply prep</button>
+        <button class="prep-btn primary-action" onclick="toggleApplicationDraft(${index})">Create Application Draft</button>
+      </div>
       <div class="apply-prep" id="apply-prep-${index}" style="display:none"></div>
       <div class="application-draft" id="application-draft-${index}" style="display:none"></div>
     </div>
@@ -1988,6 +2117,11 @@ function renderApplicationDraftPanel(job, index) {
   const disabled = draft.verified ? '' : 'disabled';
 
   return `
+    <div class="draft-stepper">
+      <div class="draft-step"><strong>1. Fill gaps</strong><span>Missing profile details</span></div>
+      <div class="draft-step"><strong>2. Verify</strong><span>User checks accuracy</span></div>
+      <div class="draft-step"><strong>3. Apply</strong><span>Packet + tailored CV</span></div>
+    </div>
     <div class="draft-note">Review and verify before applying. CareerIQ prepares the packet and resume; you stay in control of the final submission.</div>
     <div class="draft-form-grid">
       <input placeholder="Phone" value="${escapeHtml(fields.phone)}" oninput="updateApplicationField(${index}, 'phone', this.value)">

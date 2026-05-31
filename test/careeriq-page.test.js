@@ -79,3 +79,12 @@ test("CareerIQ turns saved jobs into verified application drafts with resume sup
   assert.match(page, /function openApplySearch/);
   assert.match(page, /Review and verify before applying/);
 });
+
+test("CareerIQ includes polished product UI classes for the demo dashboard", () => {
+  assert.match(page, /class="section-heading"/);
+  assert.match(page, /class="section-kicker"/);
+  assert.match(page, /class="job-action-strip"/);
+  assert.match(page, /class="saved-job-top"/);
+  assert.match(page, /class="draft-stepper"/);
+  assert.match(page, /cv-export-card/);
+});
