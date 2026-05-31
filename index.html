@@ -357,6 +357,53 @@
     }
     .skill-learn { color: var(--cyan); font-size: 11px; margin-top: 4px; }
 
+    /* Learning path */
+    .learning-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 780px) { .learning-grid { grid-template-columns: 1fr; } }
+    .learning-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: rgba(255,255,255,0.03);
+    }
+    .learning-skill {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .learning-resource {
+      display: inline-flex;
+      margin: 8px 0;
+      color: var(--cyan);
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .learning-resource:hover { text-decoration: underline; }
+    .learning-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0;
+    }
+    .learning-meta span {
+      border: 1px solid rgba(6,182,212,0.2);
+      border-radius: 20px;
+      padding: 3px 8px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .learning-reason {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
     /* Strengths */
     .strength-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
     .chip {
@@ -794,6 +841,12 @@
       </div>
     </div>
 
+    <!-- Learning Path -->
+    <div class="section card">
+      <div class="card-title">Personalized Learning Path</div>
+      <div id="learning-path-list" class="learning-grid"></div>
+    </div>
+
     <!-- Salary Row -->
     <div class="section card">
       <div class="card-title">Salary Intelligence</div>
@@ -1017,6 +1070,16 @@ Return ONLY a valid JSON object with this exact structure — no markdown, no ex
     "<tip 2>",
     "<tip 3>"
   ],
+  "learning_path": [
+    {
+      "skill": "<skill gap to close>",
+      "resource_title": "<specific course or resource>",
+      "resource_url": "<public URL from Google Cloud Skills Boost, freeCodeCamp, Coursera, Kaggle Learn, LeetCode, or Google Interview Warmup>",
+      "difficulty": "<Beginner|Intermediate|Advanced>",
+      "time_estimate": "<e.g. 2 weeks>",
+      "why_recommended": "<why this resource fits the candidate profile and target role>"
+    }
+  ],
   "job_listings": [
     {
       "title": "<realistic job title>",
@@ -1040,6 +1103,7 @@ Rules:
 - alternative_roles: list exactly 3 roles they are already partially qualified for
 - interview_questions: list exactly 3 questions tailored to THIS person's resume gaps
 - resume_tips: list exactly 3 concrete improvements
+- learning_path: list exactly 3 course/resource recommendations tied to the top skill gaps.
 - job_listings: list exactly 6 realistic job opportunities. These are simulated recommendations, not scraped live postings.
 - salary: use the ${market} market. For India use LPA, for US use USD k, etc.
 - Be honest. If someone is far from the role, say so in match_summary and give a realistic hiring_probability.`;
@@ -1146,6 +1210,7 @@ function buildFallbackReport(resume, role, market, level) {
       `Mirror keywords from ${role} descriptions in the skills and project sections.`,
       'Add one portfolio or case-study link that proves readiness.'
     ],
+    learning_path: fallbackLearningPath(gapOne, gapTwo, gapThree),
     job_listings: fallbackJobs(role, market)
   };
 }
@@ -1202,6 +1267,8 @@ function renderResults(d, role, market) {
   strengthsList.innerHTML = `<div class="strength-chips">${(d.strengths || []).map(s =>
     `<span class="chip chip-green">✓ ${s}</span>`
   ).join('')}</div>`;
+
+  renderLearningPath(d.learning_path || fallbackLearningPath());
 
   // Alt roles
   const altList = document.getElementById('alt-roles-list');
@@ -1277,6 +1344,51 @@ function renderResults(d, role, market) {
 let jobDeck = [];
 let currentJobIndex = 0;
 let savedJobs = [];
+
+function renderLearningPath(resources) {
+  const list = document.getElementById('learning-path-list');
+  const items = resources.length ? resources : fallbackLearningPath();
+  list.innerHTML = items.slice(0, 3).map(item => `
+    <div class="learning-card">
+      <div class="learning-skill">${escapeHtml(item.skill || 'Priority skill')}</div>
+      <a class="learning-resource" href="${escapeHtml(item.resource_url || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.resource_title || 'Recommended resource')}</a>
+      <div class="learning-meta">
+        <span>${escapeHtml(item.difficulty || 'Beginner')}</span>
+        <span>${escapeHtml(item.time_estimate || '2 weeks')}</span>
+      </div>
+      <div class="learning-reason">${escapeHtml(item.why_recommended || 'Recommended because it closes one of your highest-impact skill gaps.')}</div>
+    </div>
+  `).join('');
+}
+
+function fallbackLearningPath(first = 'Cloud deployment proof', second = 'Measurable impact metrics', third = 'Interview readiness') {
+  return [
+    {
+      skill: first,
+      resource_title: 'Google Cloud Skills Boost: Cloud Digital Leader',
+      resource_url: 'https://www.cloudskillsboost.google/paths/9',
+      difficulty: 'Beginner',
+      time_estimate: '1-2 weeks',
+      why_recommended: 'Adds credible cloud vocabulary and deployment proof for technical roles.'
+    },
+    {
+      skill: second,
+      resource_title: 'freeCodeCamp: Responsive Web Design',
+      resource_url: 'https://www.freecodecamp.org/learn/2022/responsive-web-design/',
+      difficulty: 'Beginner',
+      time_estimate: '2 weeks',
+      why_recommended: 'Helps convert project work into visible, portfolio-ready outcomes.'
+    },
+    {
+      skill: third,
+      resource_title: 'Google Interview Warmup',
+      resource_url: 'https://grow.google/certificates/interview-warmup/',
+      difficulty: 'Beginner',
+      time_estimate: '3 days',
+      why_recommended: 'Turns skill gaps into practiced interview stories before applications.'
+    }
+  ];
+}
 
 function renderJobDeck(listings, role, market) {
   jobDeck = listings.length ? listings : fallbackJobs(role, market);

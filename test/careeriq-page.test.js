@@ -49,3 +49,12 @@ test("CareerIQ uses Gemini JSON mode config and a fallback report path", () => {
   assert.match(page, /function buildFallbackReport/);
   assert.match(page, /return buildFallbackReport\(resume, role, market, level\)/);
 });
+
+test("CareerIQ includes personalized learning resources", () => {
+  assert.match(page, /"learning_path"/);
+  assert.match(page, /id="learning-path-list"/);
+  assert.match(page, /function renderLearningPath/);
+  assert.match(page, /function fallbackLearningPath/);
+  assert.match(page, /https:\/\/www\.cloudskillsboost\.google/);
+  assert.match(page, /https:\/\/www\.freecodecamp\.org/);
+});
