@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CareerLens AI</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <a class="brand" href="/" aria-label="CareerLens AI home">
+            <span class="brand-mark">CL</span>
+            <span>CareerLens AI</span>
+          </a>
+          <p class="tagline">Personalized career intelligence from your real profile.</p>
+        </div>
+        <div class="status-pill">
+          <span class="status-dot"></span>
+          Gemini advisor
+        </div>
+      </header>
+
+      <section class="hero-grid">
+        <div class="intro-panel">
+          <h1>Upload your profile. Get a career strategy.</h1>
+          <p>
+            CareerLens reads your resume, role interests, location, and seniority, then returns
+            role recommendations, skill gaps, hiring odds, salary guidance, ATS fixes, and interview prep.
+          </p>
+          <div class="trust-row" aria-label="Platform capabilities">
+            <span>Role fit</span>
+            <span>Skill gaps</span>
+            <span>ATS review</span>
+            <span>Interview plan</span>
+          </div>
+        </div>
+
+        <form id="profile-form" class="intake-panel">
+          <div class="field-row">
+            <label for="experience-level">Experience level</label>
+            <select id="experience-level" name="experienceLevel">
+              <option>Entry level</option>
+              <option>Junior</option>
+              <option>Mid level</option>
+              <option>Senior</option>
+              <option>Career switcher</option>
+            </select>
+          </div>
+
+          <div class="field-grid">
+            <label>
+              Target roles or interests
+              <input id="target-roles" name="targetRoles" type="text" placeholder="Full-stack, data analyst, product roles">
+            </label>
+            <label>
+              Target location
+              <input id="location" name="location" type="text" placeholder="Bengaluru, remote, USA">
+            </label>
+          </div>
+
+          <label class="upload-box" for="resume-file">
+            <input id="resume-file" type="file" accept=".txt,.md,.csv,.json,.rtf">
+            <span class="upload-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" role="img">
+                <path d="M12 3v12m0-12 4 4m-4-4-4 4M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span>
+              <strong>Upload plain-text resume/profile</strong>
+              <small id="file-status">TXT, MD, CSV, JSON, or paste text below</small>
+            </span>
+          </label>
+
+          <label>
+            Resume, LinkedIn, GitHub, or portfolio text
+            <textarea id="profile-text" name="profileText" rows="12" placeholder="Paste your resume, profile summary, project descriptions, skills, education, certifications, and links here."></textarea>
+          </label>
+
+          <button id="analyze-button" class="primary-button" type="submit">
+            <span>Analyze Career Fit</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <p class="form-note">Your API key stays on the server. Salary and probability outputs are advisory estimates.</p>
+        </form>
+      </section>
+
+      <section id="alert" class="alert hidden" role="alert"></section>
+
+      <section id="loading" class="loading-panel hidden" aria-live="polite">
+        <div class="loader"></div>
+        <div>
+          <h2>CareerLens is reading the market signal.</h2>
+          <p>Gemini is comparing your evidence against role demand, ATS patterns, and interview readiness.</p>
+        </div>
+      </section>
+
+      <section id="results" class="results hidden" aria-live="polite">
+        <div class="results-header">
+          <div>
+            <p class="section-label">Advisor report</p>
+            <h2>Your personalized career map</h2>
+          </div>
+          <button id="retry-button" class="secondary-button" type="button">Regenerate</button>
+        </div>
+
+        <div class="summary-card">
+          <div>
+            <p class="section-label">Market position</p>
+            <h3 id="profile-summary">Profile summary appears here.</h3>
+          </div>
+          <div class="score-ring" id="overall-score">--</div>
+        </div>
+
+        <div id="role-grid" class="role-grid"></div>
+
+        <div class="dashboard-grid">
+          <article class="panel">
+            <div class="panel-heading">
+              <h3>Skill-Gap Heatmap</h3>
+              <span id="gap-count">0 gaps</span>
+            </div>
+            <div id="skill-gaps" class="stack-list"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <h3>Hiring Probability</h3>
+              <span id="confidence">--</span>
+            </div>
+            <div id="hiring-signals" class="two-column-list"></div>
+          </article>
+
+          <article class="panel salary-panel">
+            <div class="panel-heading">
+              <h3>Salary Benchmark</h3>
+              <span id="salary-location">--</span>
+            </div>
+            <p id="salary-range" class="salary-range">--</p>
+            <div id="salary-drivers" class="chip-row"></div>
+            <p id="salary-disclaimer" class="fine-print"></p>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <h3>Resume and ATS</h3>
+              <span id="ats-score">--</span>
+            </div>
+            <div id="ats-review" class="stack-list"></div>
+          </article>
+        </div>
+
+        <div class="wide-grid">
+          <article class="panel">
+            <div class="panel-heading">
+              <h3>Optimized Resume Bullets</h3>
+            </div>
+            <ul id="resume-bullets" class="numbered-list"></ul>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <h3>Interview Prep Plan</h3>
+            </div>
+            <div id="interview-plan" class="stack-list"></div>
+          </article>
+
+          <article class="panel action-panel">
+            <div class="panel-heading">
+              <h3>Next 7 Days</h3>
+            </div>
+            <div id="seven-day-plan" class="timeline"></div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
