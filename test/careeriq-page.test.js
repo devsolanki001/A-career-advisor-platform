@@ -69,3 +69,13 @@ test("CareerIQ generates an ATS friendly optimized CV with PDF and Word download
   assert.match(page, /ATS-friendly, one-column resume/);
   assert.match(page, /html2pdf\.bundle\.min\.js/);
 });
+
+test("CareerIQ turns saved jobs into verified application drafts with resume support", () => {
+  assert.match(page, /Create Application Draft/);
+  assert.match(page, /function toggleApplicationDraft/);
+  assert.match(page, /function verifyApplicationDraft/);
+  assert.match(page, /function buildApplicationPacket/);
+  assert.match(page, /function downloadApplicationCvWord/);
+  assert.match(page, /function openApplySearch/);
+  assert.match(page, /Review and verify before applying/);
+});

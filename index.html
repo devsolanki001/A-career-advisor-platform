@@ -580,6 +580,68 @@
       font-size: 12px;
       line-height: 1.6;
     }
+    .application-draft {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .draft-note {
+      color: var(--amber);
+      font-size: 12px;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    .draft-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 640px) { .draft-form-grid { grid-template-columns: 1fr; } }
+    .draft-form-grid input {
+      font-size: 12px;
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+    .draft-packet {
+      border: 1px solid rgba(6,182,212,0.18);
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(6,182,212,0.055);
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      max-height: 260px;
+      overflow: auto;
+    }
+    .verify-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 10px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .verify-row input {
+      width: auto;
+      margin-top: 3px;
+    }
+    .draft-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .draft-actions .prep-btn[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .draft-status {
+      color: var(--green);
+      font-size: 11px;
+      margin-top: 8px;
+      min-height: 16px;
+    }
 
     /* Alt roles */
     .alt-role-item {
@@ -1509,6 +1571,7 @@ let jobDeck = [];
 let currentJobIndex = 0;
 let savedJobs = [];
 let latestOptimizedCv = null;
+let applicationDrafts = {};
 
 function renderOptimizedCv(cv) {
   latestOptimizedCv = normalizeOptimizedCv(cv);
@@ -1789,6 +1852,7 @@ function renderJobDeck(listings, role, market) {
   jobDeck = listings.length ? listings : fallbackJobs(role, market);
   currentJobIndex = 0;
   savedJobs = [];
+  applicationDrafts = {};
   renderCurrentJob();
   renderSavedJobs();
 }
@@ -1858,7 +1922,9 @@ function renderSavedJobs() {
       <div class="saved-job-title">${escapeHtml(job.title || 'Saved job')}</div>
       <div class="saved-job-meta">${escapeHtml(job.company_type || 'Company')} · ${escapeHtml(job.location || 'Market')} · ${job.match_pct || 75}% match</div>
       <button class="prep-btn" onclick="toggleApplyPrep(${index})">Apply prep</button>
+      <button class="prep-btn" onclick="toggleApplicationDraft(${index})">Create Application Draft</button>
       <div class="apply-prep" id="apply-prep-${index}" style="display:none"></div>
+      <div class="application-draft" id="application-draft-${index}" style="display:none"></div>
     </div>
   `).join('');
 }
@@ -1879,6 +1945,197 @@ function toggleApplyPrep(index) {
     <strong>Cover note:</strong><br>${escapeHtml(prep.cover_note || 'I am interested in this role because my project experience matches the team needs, and I can close the listed gaps quickly.')}
   `;
   box.style.display = 'block';
+}
+
+function toggleApplicationDraft(index) {
+  const box = document.getElementById(`application-draft-${index}`);
+  const job = savedJobs[index];
+  if (!box || !job) return;
+
+  if (box.style.display === 'block') {
+    box.style.display = 'none';
+    return;
+  }
+
+  if (!applicationDrafts[index]) {
+    applicationDrafts[index] = createApplicationDraft(job);
+  }
+
+  box.innerHTML = renderApplicationDraftPanel(job, index);
+  box.style.display = 'block';
+}
+
+function createApplicationDraft(job) {
+  return {
+    verified: false,
+    fields: {
+      phone: '',
+      notice: '',
+      workAuth: '',
+      expectedSalary: '',
+      portfolio: latestOptimizedCv?.contact_line || '',
+      availability: ''
+    },
+    status: ''
+  };
+}
+
+function renderApplicationDraftPanel(job, index) {
+  const draft = applicationDrafts[index] || createApplicationDraft(job);
+  applicationDrafts[index] = draft;
+  const fields = draft.fields;
+  const packet = buildApplicationPacket(job, index);
+  const disabled = draft.verified ? '' : 'disabled';
+
+  return `
+    <div class="draft-note">Review and verify before applying. CareerIQ prepares the packet and resume; you stay in control of the final submission.</div>
+    <div class="draft-form-grid">
+      <input placeholder="Phone" value="${escapeHtml(fields.phone)}" oninput="updateApplicationField(${index}, 'phone', this.value)">
+      <input placeholder="Notice period" value="${escapeHtml(fields.notice)}" oninput="updateApplicationField(${index}, 'notice', this.value)">
+      <input placeholder="Work authorization" value="${escapeHtml(fields.workAuth)}" oninput="updateApplicationField(${index}, 'workAuth', this.value)">
+      <input placeholder="Expected salary" value="${escapeHtml(fields.expectedSalary)}" oninput="updateApplicationField(${index}, 'expectedSalary', this.value)">
+      <input placeholder="Portfolio / LinkedIn / GitHub" value="${escapeHtml(fields.portfolio)}" oninput="updateApplicationField(${index}, 'portfolio', this.value)">
+      <input placeholder="Availability / interview slots" value="${escapeHtml(fields.availability)}" oninput="updateApplicationField(${index}, 'availability', this.value)">
+    </div>
+    <div class="draft-packet" id="application-packet-${index}">${escapeHtml(packet)}</div>
+    <label class="verify-row">
+      <input type="checkbox" ${draft.verified ? 'checked' : ''} onchange="verifyApplicationDraft(${index}, this.checked)">
+      <span>I reviewed the application packet, resume bullets, and personal details. Unlock apply actions.</span>
+    </label>
+    <div class="draft-actions">
+      <button class="prep-btn" ${disabled} onclick="copyApplicationPacket(${index})">Copy Packet</button>
+      <button class="prep-btn" ${disabled} onclick="downloadApplicationCvWord(${index})">Download Tailored CV</button>
+      <button class="prep-btn" ${disabled} onclick="openApplySearch(${index})">Open Apply Page</button>
+    </div>
+    <div class="draft-status" id="application-status-${index}">${escapeHtml(draft.status || '')}</div>
+  `;
+}
+
+function updateApplicationField(index, field, value) {
+  if (!applicationDrafts[index]) return;
+  applicationDrafts[index].fields[field] = value;
+  applicationDrafts[index].verified = false;
+  const packet = document.getElementById(`application-packet-${index}`);
+  const status = document.getElementById(`application-status-${index}`);
+  const verify = document.querySelector(`#application-draft-${index} .verify-row input`);
+  const buttons = document.querySelectorAll(`#application-draft-${index} .draft-actions .prep-btn`);
+  if (packet) packet.textContent = buildApplicationPacket(savedJobs[index], index);
+  if (verify) verify.checked = false;
+  buttons.forEach(button => button.disabled = true);
+  if (status) status.textContent = 'Details changed. Verify again before applying.';
+}
+
+function verifyApplicationDraft(index, checked) {
+  if (!applicationDrafts[index]) return;
+  applicationDrafts[index].verified = checked;
+  const buttons = document.querySelectorAll(`#application-draft-${index} .draft-actions .prep-btn`);
+  const status = document.getElementById(`application-status-${index}`);
+  buttons.forEach(button => button.disabled = !checked);
+  if (status) status.textContent = checked ? 'Verified. Application actions unlocked.' : 'Verification removed.';
+}
+
+function buildApplicationPacket(job, index) {
+  const draft = applicationDrafts[index] || createApplicationDraft(job);
+  const fields = draft.fields;
+  const prep = job?.apply_prep || {};
+  const cv = latestOptimizedCv || {};
+  const bullets = ensureArray(prep.resume_bullets, ['Add a measurable achievement that mirrors the job keywords.']);
+  const missing = ensureArray(job?.missing_keywords, ['target-role keywords']);
+
+  return [
+    `APPLICATION DRAFT - ${job?.title || 'Saved role'}`,
+    `Company type: ${job?.company_type || 'Target company'}`,
+    `Location: ${job?.location || 'Target market'}`,
+    '',
+    'Candidate details to verify:',
+    `Name: ${cv.candidate_name || 'Candidate Name'}`,
+    `Contact: ${fields.phone || cv.contact_line || 'Add phone/email'}`,
+    `Portfolio: ${fields.portfolio || 'Add portfolio/LinkedIn/GitHub'}`,
+    `Notice period: ${fields.notice || 'Add notice period'}`,
+    `Work authorization: ${fields.workAuth || 'Add work authorization'}`,
+    `Expected salary: ${fields.expectedSalary || 'Add expected salary'}`,
+    `Availability: ${fields.availability || 'Add interview availability'}`,
+    '',
+    'Resume headline:',
+    prep.resume_headline || cv.headline || 'Tailor headline to this job.',
+    '',
+    'Resume bullets to use:',
+    ...bullets.map(bullet => `- ${bullet}`),
+    '',
+    'Cover note / recruiter message:',
+    prep.cover_note || `I am interested in this ${job?.title || 'role'} because my background aligns with the core requirements, and I am actively closing the remaining gaps.`,
+    '',
+    'Likely application answers:',
+    `Why this role? This role matches my current strengths and lets me apply ${missing.join(', ')} in a practical setting.`,
+    `Why me? My resume shows relevant experience, measurable outcomes, and a clear learning plan for the remaining gaps.`,
+    '',
+    'Final checklist:',
+    '- Confirm all personal details are correct.',
+    '- Attach the tailored CV from CareerIQ.',
+    '- Paste the cover note only after reviewing tone and accuracy.',
+    '- Submit manually on the official company/job-board page.'
+  ].join('\n');
+}
+
+async function copyApplicationPacket(index) {
+  if (!applicationDrafts[index]?.verified) return setApplicationStatus(index, 'Verify the packet before copying.');
+  const text = buildApplicationPacket(savedJobs[index], index);
+  try {
+    await navigator.clipboard.writeText(text);
+    setApplicationStatus(index, 'Application packet copied.');
+  } catch(e) {
+    const area = document.createElement('textarea');
+    area.value = text;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand('copy');
+    area.remove();
+    setApplicationStatus(index, 'Application packet copied.');
+  }
+}
+
+function downloadApplicationCvWord(index) {
+  if (!applicationDrafts[index]?.verified) return setApplicationStatus(index, 'Verify the packet before downloading.');
+  const job = savedJobs[index] || {};
+  const prep = job.apply_prep || {};
+  const base = normalizeOptimizedCv(latestOptimizedCv || {});
+  const tailoredCv = {
+    ...base,
+    headline: prep.resume_headline || base.headline,
+    experience: base.experience.map((item, itemIndex) => itemIndex === 0
+      ? { ...item, bullets: ensureArray(prep.resume_bullets, item.bullets) }
+      : item),
+    ats_keywords: base.ats_keywords.concat(ensureArray(job.missing_keywords, []), job.title || '').filter(Boolean)
+  };
+  const html = buildPrintableCvDocument(buildOptimizedCvHtml(tailoredCv));
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = `${getCvFilename('doc').replace('.doc', '')}-${safeSlug(job.title || 'application')}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(objectUrl);
+  setApplicationStatus(index, 'Tailored CV downloaded.');
+}
+
+function openApplySearch(index) {
+  if (!applicationDrafts[index]?.verified) return setApplicationStatus(index, 'Verify the packet before opening apply page.');
+  const job = savedJobs[index] || {};
+  const query = `${job.title || 'job'} ${job.company_type || ''} ${job.location || ''} apply`;
+  window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank', 'noopener,noreferrer');
+  setApplicationStatus(index, 'Opened apply search. Submit only after checking the official page.');
+}
+
+function setApplicationStatus(index, message) {
+  if (applicationDrafts[index]) applicationDrafts[index].status = message;
+  const status = document.getElementById(`application-status-${index}`);
+  if (status) status.textContent = message;
+}
+
+function safeSlug(value) {
+  return String(value || 'application').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'application';
 }
 
 function fallbackJobs(role, market) {
